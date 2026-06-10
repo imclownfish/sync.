@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aneria - Anime</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #f0f6fc;
+    }
+    header {
+      padding: 30px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #161b22 0%, #0b1220 100%);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.8rem;
+    }
+    header p {
+      margin: 12px auto 0;
+      max-width: 720px;
+      color: #8b949e;
+    }
+    .site-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .site-nav a {
+      color: #8b949e;
+      text-decoration: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+    }
+    .site-nav a:hover,
+    .site-nav a:focus-visible {
+      color: #58a6ff;
+      border-color: #58a6ff;
+      outline: none;
+    }
+    .container {
+      padding: 30px 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .item {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .item h2 {
+      margin-top: 0;
+      color: #58a6ff;
+    }
+    .item p {
+      margin: 8px 0;
+      color: #8b949e;
+      line-height: 1.6;
+    }
+    .item a {
+      color: #79c0ff;
+      text-decoration: none;
+    }
+    .item a:hover {
+      text-decoration: underline;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #58a6ff;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    .status {
+      margin: 0 auto 18px;
+      max-width: 960px;
+      color: #8b949e;
+      font-size: 0.95rem;
+    }
+    .search-wrapper {
+      max-width: 960px;
+      margin: 0 auto 24px;
+      padding: 0 20px;
+    }
+    .search-wrapper input {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #f0f6fc;
+      font-size: 1rem;
+    }
+    .search-wrapper input:focus {
+      outline: none;
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.12);
+    }
+  </style>
+</head>
+<body data-page="anime">
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Anime</h1>
+        <p>Explore anime details, studio notes, genre breakdowns, and links to wiki-style reference pages for each series.</p>
+      </div>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="movies.html">Movies</a>
+        <a href="anime.html">Anime</a>
+        <a href="tv-shows.html">TV Shows</a>
+        <a href="collections.html">Collections</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <div id="status" class="status">Loading latest content…</div>
+    <div class="search-wrapper">
+      <input id="search" type="search" placeholder="Search anime..." />
+    </div>
+    <div id="content" class="container"></div>
+    <a class="back-link" href="index.html">← Back to Aneria</a>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

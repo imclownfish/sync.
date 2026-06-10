@@ -1,0 +1,91 @@
+{
+  "movies": [
+    {
+      "title": "Inception",
+      "genre": "Sci-Fi, Thriller",
+      "year": "2010",
+      "rating": "8.8/10",
+      "description": "A mind-bending heist film directed by Christopher Nolan, following a team of specialists who enter dreams to steal and plant ideas.",
+      "link": "https://www.imdb.com/title/tt1375666/"
+    },
+    {
+      "title": "Parasite",
+      "genre": "Drama, Thriller",
+      "year": "2019",
+      "rating": "8.6/10",
+      "description": "Bong Joon-ho's Oscar-winning social thriller about two families from different economic worlds whose lives become dangerously intertwined.",
+      "link": "https://www.imdb.com/title/tt6751668/"
+    },
+    {
+      "title": "The Grand Budapest Hotel",
+      "genre": "Comedy, Drama",
+      "year": "2014",
+      "rating": "8.1/10",
+      "description": "A whimsical story of a legendary concierge and a lobby boy on an adventure through a fictional European kingdom in the 1930s.",
+      "link": "https://www.imdb.com/title/tt2278388/"
+    }
+  ],
+  "anime": [
+    {
+      "title": "Attack on Titan",
+      "genre": "Action, Dark Fantasy",
+      "studio": "MAPPA / Wit Studio",
+      "synopsis": "Humanity fights for survival behind massive walls as mysterious Titans threaten destruction and secrets emerge from the ruins.",
+      "link": "https://attackontitan.fandom.com/wiki/Attack_on_Titan"
+    },
+    {
+      "title": "Demon Slayer: Kimetsu no Yaiba",
+      "genre": "Action, Fantasy",
+      "studio": "Ufotable",
+      "synopsis": "A young swordsman joins the Demon Slayer Corps to avenge his family and cure his sister after a demon attack transforms her into one of them.",
+      "link": "https://kimetsu-no-yaiba.fandom.com/wiki/Demon_Slayer:_Kimetsu_no_Yaiba"
+    },
+    {
+      "title": "My Hero Academia",
+      "genre": "Superhero, School",
+      "studio": "Bones",
+      "synopsis": "In a world where most people have superpowers, a powerless boy trains at a hero academy after inheriting the ability of the world's greatest hero.",
+      "link": "https://myheroacademia.fandom.com/wiki/My_Hero_Academia"
+    }
+  ],
+  "tvShows": [
+    {
+      "title": "Stranger Things",
+      "genre": "Sci-Fi, Horror",
+      "seasons": "4",
+      "synopsis": "A group of friends in the 1980s uncovers supernatural threats in their town while trying to rescue a missing boy.",
+      "link": "https://www.imdb.com/title/tt4574334/"
+    },
+    {
+      "title": "The Crown",
+      "genre": "Historical Drama",
+      "seasons": "6",
+      "synopsis": "A dramatized history of the reign of Queen Elizabeth II and the political and personal events that shaped the modern British monarchy.",
+      "link": "https://www.imdb.com/title/tt4786824/"
+    },
+    {
+      "title": "Black Mirror",
+      "genre": "Sci-Fi, Anthology",
+      "seasons": "6",
+      "synopsis": "A collection of standalone episodes exploring dark and often dystopian consequences of modern technology.",
+      "link": "https://www.imdb.com/title/tt2085059/"
+    }
+  ],
+  "collections": [
+    {
+      "title": "Top Sci-Fi Picks",
+      "includes": "Inception, Black Mirror, Stranger Things",
+      "description": "Perfect for fans of futuristic worlds, speculative storytelling, and mind-bending plots."
+    },
+    {
+      "title": "Anime Essentials",
+      "includes": "Attack on Titan, Demon Slayer, My Hero Academia",
+      "description": "Essential anime series from action, fantasy, and superhero genres for both new and experienced viewers."
+    },
+    {
+      "title": "Critic Favorites",
+      "includes": "Parasite, The Crown, The Grand Budapest Hotel",
+      "description": "Highly rated titles praised for storytelling, performances, and production quality."
+    }
+  ]
+}
