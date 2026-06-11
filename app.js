@@ -256,10 +256,35 @@ async function fetchExternalMovies() {
 }
 
 async function fetchExternalAnime() {
+  // Try the new Kitsu provider first
+  try {
+    const data = await fetchJson('/api/anime/trending?limit=80');
+    if (data && Array.isArray(data.data) && data.data.length) {
+      return data.data.map(entry => {
+        const attributes = entry.attributes || {};
+        const rawImage = attributes.posterImage && (attributes.posterImage.large || attributes.posterImage.medium || attributes.posterImage.small) || attributes.coverImage && attributes.coverImage.original || null;
+        const image = rawImage ? String(rawImage).replace(/^http:\/\//i, 'https://') : null;
+        return {
+          title: attributes.titles?.en_jp || attributes.titles?.en || attributes.canonicalTitle || 'Untitled',
+          genre: attributes.showType || 'Anime',
+          studio: attributes.subtype || 'Unknown',
+          synopsis: sanitizeText(attributes.synopsis) || 'No summary available.',
+          image: image,
+          rating: attributes.averageRating ? `${parseFloat(attributes.averageRating).toFixed(1)}/10` : 'N/A',
+          link: attributes.slug ? `https://kitsu.io/anime/${attributes.slug}` : `https://kitsu.io/anime/${entry.id}`
+        };
+      });
+    }
+  } catch (error) {
+    console.warn('Unable to fetch live anime data from Kitsu.', error);
+    lastLiveError = error.message || String(error);
+  }
+
+  // Fallback to Jikan if Kitsu is unavailable
   try {
     const data = await fetchJson('/api/jikan/top/anime?limit=80');
     return (data || []).map(anime => {
-      const rawImage = (anime.images && ((anime.images.jpg && (anime.images.jpg.large_image_url || anime.images.jpg.image_url)) || anime.images.jpg && anime.images.jpg.image_url)) || anime.image_url || null;
+      const rawImage = (anime.images && ((anime.images.jpg && (anime.images.jpg.large_image_url || anime.images.jpg.image_url)) || (anime.images.jpg && anime.images.jpg.image_url))) || anime.image_url || null;
       const image = rawImage ? String(rawImage).replace(/^http:\/\//i, 'https://') : null;
       return {
         title: anime.title,
@@ -267,6 +292,7 @@ async function fetchExternalAnime() {
         studio: (anime.studios || []).map(s => s.name).join(', ') || 'Unknown',
         synopsis: sanitizeText(anime.synopsis || (anime.synopsis && anime.synopsis.text) || '' ) || 'No summary available.',
         image: image,
+        rating: anime.score ? `${anime.score.toFixed(1)}/10` : 'N/A',
         link: anime.url || (anime.website || '#')
       };
     });
@@ -352,10 +378,12 @@ function renderItems(items, type) {
       `;
     } else if (type === "anime") {
       html += `
+        <p><strong>Rating:</strong> ${item.rating || 'N/A'}</p>
         <p style="margin-top:8px">${item.synopsis || 'No summary available.'}</p>
       `;
     } else if (type === "tvShows") {
       html += `
+        <p><strong>Status:</strong> ${item.seasons || 'N/A'}</p>
         <p style="margin-top:8px">${item.synopsis || 'No summary available.'}</p>
       `;
     }

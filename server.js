@@ -33,7 +33,7 @@ try {
 async function fetchTraktWithRetry(limit = 80, retries = 2) {
   if (!TRAKT_CLIENT_ID) throw new Error('Trakt client id not configured');
 
-  const endpoint = `https://api.trakt.tv/movies/trending?limit=${limit}&extended=images`;
+  const endpoint = `https://api.trakt.tv/movies/trending?limit=${limit}&extended=full`;
   let attempt = 0;
   let lastErr = null;
 
@@ -141,6 +141,34 @@ app.get('/api/jikan/top/anime', async (req, res) => {
 let tvCache = null;
 let tvCacheTs = 0;
 const TV_CACHE_TTL = 1000 * 60 * 5;
+
+let kitsuCache = null;
+let kitsuCacheTs = 0;
+const KITSU_CACHE_TTL = 1000 * 60 * 5;
+app.get('/api/anime/trending', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 80;
+  const now = Date.now();
+  if (kitsuCache && (now - kitsuCacheTs) < KITSU_CACHE_TTL) {
+    return res.json(kitsuCache);
+  }
+
+  try {
+    const endpoint = `https://kitsu.io/api/edge/trending/anime?limit=${limit}`;
+    const response = await fetch(endpoint, { headers: { 'Accept': 'application/vnd.api+json', 'User-Agent': 'Aneria/1.0' } });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`Kitsu ${response.status}: ${text}`);
+    }
+    const data = await response.json();
+    kitsuCache = data;
+    kitsuCacheTs = Date.now();
+    res.json(data);
+  } catch (err) {
+    console.error('Kitsu anime proxy error:', err);
+    res.status(502).json({ error: 'Failed to fetch from Kitsu', detail: String(err) });
+  }
+});
+
 app.get('/api/tvmaze/shows', async (req, res) => {
   const pages = req.query.pages ? req.query.pages.split(',').map(Number) : [0,1,2];
   const now = Date.now();
