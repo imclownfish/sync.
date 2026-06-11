@@ -186,17 +186,34 @@ async function fetchTmdbGenres() {
   }
 }
 
+function formatRating(value) {
+  if (value === undefined || value === null || value === '') return 'N/A';
+  const num = typeof value === 'number' ? value : parseFloat(value);
+  if (isNaN(num)) return String(value).trim() || 'N/A';
+  if (num > 10) return `${num.toFixed(0)}/100`;
+  return `${num.toFixed(1)}/10`;
+}
+
 function getRatingFromMovie(m) {
   if (!m) return 'N/A';
-  // Try common fields from Trakt and other providers
   const candidates = [m.rating, m.vote_average, m.score, (m.ratings && (m.ratings.rating || m.ratings.average)), (m.stats && m.stats.rating)];
   for (const c of candidates) {
     if (c === undefined || c === null) continue;
     const num = typeof c === 'number' ? c : parseFloat(c);
-    if (!isNaN(num)) return `${num.toFixed(1)}/10`;
+    if (!isNaN(num)) return formatRating(num);
     if (String(c).trim()) return String(c);
   }
   return 'N/A';
+}
+
+function getMovieImage(m) {
+  if (!m || !m.images) return null;
+  const raw =
+    (m.images.poster && (m.images.poster.full || m.images.poster.thumb)) ||
+    (m.images.fanart && (m.images.fanart.full || m.images.fanart.thumb)) ||
+    (m.images.banner && (m.images.banner.full || m.images.banner.thumb)) ||
+    (m.images.screenshot && (m.images.screenshot.full || m.images.screenshot.thumb));
+  return raw ? String(raw).replace(/^http:\/\//i, 'https://') : null;
 }
 
 function mapMovie(movie, genreMap = {}) {
@@ -219,14 +236,13 @@ async function fetchExternalMovies() {
       const data = await proxyRes.json();
       return (data || []).map(entry => {
         const m = entry.movie || entry;
-        const image = (m.images && (m.images.poster && (m.images.poster.full || m.images.poster.thumb))) || null;
         return {
           title: m.title || "Untitled",
           genre: (m.genres || []).slice(0, 3).join(", ") || "Movie",
           year: m.year || "N/A",
           rating: getRatingFromMovie(m),
           description: sanitizeText(m.overview || m.synopsis || m.description) || "No summary available.",
-          image: image && String(image).replace(/^http:\/\//i, 'https://') || null,
+          image: getMovieImage(m),
           link: m.ids && m.ids.slug ? `https://trakt.tv/movies/${m.ids.slug}` : (m.ids && m.ids.tmdb ? `https://www.themoviedb.org/movie/${m.ids.tmdb}` : "#")
         };
       });
@@ -270,7 +286,7 @@ async function fetchExternalAnime() {
           studio: attributes.subtype || 'Unknown',
           synopsis: sanitizeText(attributes.synopsis) || 'No summary available.',
           image: image,
-          rating: attributes.averageRating ? `${parseFloat(attributes.averageRating).toFixed(1)}/10` : 'N/A',
+          rating: formatRating(attributes.averageRating),
           link: attributes.slug ? `https://kitsu.io/anime/${attributes.slug}` : `https://kitsu.io/anime/${entry.id}`
         };
       });
