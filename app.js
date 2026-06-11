@@ -88,89 +88,49 @@ let filteredItems = [];
 let lastLiveError = null;
 
 function showProxyNotice(status) {
-  let container = document.getElementById('proxy-notice');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'proxy-notice';
-    container.style.padding = '8px 12px';
-    container.style.borderRadius = '6px';
-    container.style.marginBottom = '12px';
-    container.style.fontSize = '13px';
-    container.style.display = 'inline-block';
-    if (status.traktConfigured) {
-      container.style.background = '#e6ffed';
-      container.style.color = '#0b6e2f';
-    } else {
-      container.style.background = '#fff4e5';
-      container.style.color = '#8a5a00';
-    }
-    if (status.traktConfigured) {
-      container.textContent = 'Proxy active: Trakt proxy is available on the server.';
-    } else {
-      container.innerHTML = `Proxy not configured. To enable live movie updates, set a Trakt Client ID on the server and restart it. Create one at <a href="https://trakt.tv/oauth/applications" target="_blank" rel="noopener">trakt.tv/oauth/applications</a> and start the server with <code>TRAKT_CLIENT_ID=your_id npm start</code>.`;
-    }
-
-    if (status.traktConfigured === false) {
-      const small = document.createElement('div');
-      small.style.marginTop = '6px';
-      small.style.fontSize = '12px';
-      small.style.opacity = '0.9';
-      small.textContent = 'Until proxy is enabled, the site will show local data only.';
-      container.appendChild(small);
-    }
-
-    // add refresh button when proxy is configured
-    if (status.traktConfigured) {
-      const btn = document.createElement('button');
-      btn.textContent = 'Refresh live movies';
-      btn.style.marginLeft = '12px';
-      btn.style.padding = '6px 10px';
-      btn.style.borderRadius = '6px';
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        btn.textContent = 'Refreshing...';
-        try {
-          const res = await fetch('/api/trakt/refresh');
-          if (!res.ok) throw new Error(`Refresh ${res.status}`);
-          const data = await res.json();
-          // reload live data on the page
-          const liveItems = await loadLiveData(pageKey);
-          if (liveItems && liveItems.length) {
-            currentItems = liveItems;
-            filteredItems = currentItems;
-            renderItems(filteredItems, pageKey);
-            setStatus('Live content refreshed.');
-          } else {
-            setStatus('Refresh completed but no live items returned.', true);
-          }
-        } catch (err) {
-          setStatus('Refresh failed: ' + (err.message || String(err)), true);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Refresh live movies';
+  // Simplified: add a subtle refresh button (no proxy messaging exposed)
+  let btn = document.getElementById('refresh-live-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'refresh-live-btn';
+    btn.textContent = 'Refresh live data';
+    btn.style.marginLeft = '12px';
+    btn.style.padding = '6px 10px';
+    btn.style.borderRadius = '6px';
+    btn.style.background = '#0b5fff';
+    btn.style.color = '#fff';
+    btn.style.border = 'none';
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const prev = btn.textContent;
+      btn.textContent = 'Refreshing...';
+      try {
+        const res = await fetch('/api/trakt/refresh');
+        if (!res.ok) throw new Error(`Refresh ${res.status}`);
+        await res.json();
+        const liveItems = await loadLiveData(pageKey);
+        if (liveItems && liveItems.length) {
+          currentItems = liveItems;
+          filteredItems = currentItems;
+          renderItems(filteredItems, pageKey);
+          setStatus('Live content refreshed.');
+        } else {
+          setStatus('Refresh completed but no live items returned.', true);
         }
-      });
-      container.appendChild(btn);
-    }
+      } catch (err) {
+        setStatus('Refresh failed: ' + (err.message || String(err)), true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = prev;
+      }
+    });
 
-    if (status.traktConfigured) {
-      // place before statusContainer so it's visible
-      if (statusContainer && statusContainer.parentNode) {
-        statusContainer.parentNode.insertBefore(container, statusContainer);
-      } else {
-        document.body.insertBefore(container, document.body.firstChild);
-      }
+    if (statusContainer && statusContainer.parentNode) {
+      statusContainer.parentNode.insertBefore(btn, statusContainer);
     } else {
-      if (statusContainer && statusContainer.parentNode) {
-        statusContainer.parentNode.insertBefore(container, statusContainer);
-      } else {
-        document.body.insertBefore(container, document.body.firstChild);
-      }
+      document.body.insertBefore(btn, document.body.firstChild);
     }
-  } else {
-    // update
-    container.style.background = status.traktConfigured ? '#e6ffed' : '#fff4e5';
-    container.style.color = status.traktConfigured ? '#0b6e2f' : '#8a5a00';
   }
 }
 
@@ -249,6 +209,7 @@ async function fetchExternalMovies() {
           year: m.year || "N/A",
           rating: m.rating ? `${typeof m.rating === 'number' && m.rating.toFixed ? m.rating.toFixed(1) : m.rating}/10` : "N/A",
           description: m.overview || m.synopsis || "No summary available.",
+          image: (m.images && (m.images.poster && (m.images.poster.full || m.images.poster.thumb))) || null,
           link: m.ids && m.ids.slug ? `https://trakt.tv/movies/${m.ids.slug}` : (m.ids && m.ids.tmdb ? `https://www.themoviedb.org/movie/${m.ids.tmdb}` : "#")
         };
       });
@@ -279,16 +240,17 @@ async function fetchExternalMovies() {
 
 async function fetchExternalAnime() {
   try {
-    const data = await fetchJson("https://api.jikan.moe/v4/top/anime?limit=80");
-    return (data.data || []).map(anime => ({
+    const data = await fetchJson('/api/jikan/top/anime?limit=80');
+    return (data || []).map(anime => ({
       title: anime.title,
-      genre: (anime.genres || []).slice(0, 3).map(g => g.name).join(", ") || "Anime",
-      studio: (anime.studios || []).map(s => s.name).join(", ") || "Unknown",
-      synopsis: sanitizeText(anime.synopsis) || "No summary available.",
-      link: anime.url
+      genre: (anime.genres || []).slice(0, 3).map(g => g.name).join(', ') || 'Anime',
+      studio: (anime.studios || []).map(s => s.name).join(', ') || 'Unknown',
+      synopsis: sanitizeText(anime.synopsis || (anime.synopsis && anime.synopsis.text) || '' ) || 'No summary available.',
+      image: (anime.images && ((anime.images.jpg && (anime.images.jpg.large_image_url || anime.images.jpg.image_url)) || anime.images.jpg.image_url)) || anime.image_url || null,
+      link: anime.url || (anime.website || '#')
     }));
   } catch (error) {
-    console.warn("Unable to fetch live anime data from Jikan.", error);
+    console.warn('Unable to fetch live anime data from Jikan.', error);
     lastLiveError = error.message || String(error);
     return null;
   }
@@ -296,18 +258,17 @@ async function fetchExternalAnime() {
 
 async function fetchExternalTVShows() {
   try {
-    const pages = [0, 1, 2];
-    const results = await Promise.all(pages.map(page => fetchJson(`https://api.tvmaze.com/shows?page=${page}`)));
-    const shows = results.flat();
-    return shows.slice(0, 120).map(show => ({
+    const shows = await fetchJson('/api/tvmaze/shows');
+    return (shows || []).slice(0, 120).map(show => ({
       title: show.name,
-      genre: (show.genres || []).join(", ") || "TV",
-      seasons: show.status || "N/A",
-      synopsis: sanitizeText(show.summary) || "No summary available.",
-      link: show.url
+      genre: (show.genres || []).join(', ') || 'TV',
+      seasons: show.status || 'N/A',
+      synopsis: sanitizeText(show.summary || show.summary_text || '' ) || 'No summary available.',
+      image: show.image && (show.image.medium || show.image.original) || null,
+      link: show.url || (show._links && show._links.self && show._links.self.href) || '#'
     }));
   } catch (error) {
-    console.warn("Unable to fetch live TV show data from TVmaze.", error);
+    console.warn('Unable to fetch live TV show data from TVmaze.', error);
     lastLiveError = error.message || String(error);
     return null;
   }
@@ -344,36 +305,92 @@ function renderItems(items, type) {
     contentContainer.innerHTML = "<p class='error'>No content available yet.</p>";
     return;
   }
+
   contentContainer.innerHTML = "";
+
   items.forEach(item => {
+    const imgSrc = item.image || '/assets/placeholder.svg';
+    const imgHtml = `<img src="${imgSrc}" alt="${item.title}" style="width:120px;height:auto;border-radius:6px;object-fit:cover;">`;
     let html = `
-      <section class="item">
-        <h2>${item.title}</h2>
-        <p><strong>Genre:</strong> ${item.genre}</p>
+      <section class="item" style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:10px;border-bottom:1px solid #eee;">
+        ${imgHtml}
+        <div style="flex:1">
+          <h2 style="margin:0 0 6px 0">${item.title}</h2>
+          <p style="margin:0 0 6px 0"><strong>Genre:</strong> ${item.genre}</p>
     `;
+
     if (type === "movies") {
       html += `
-        <p><strong>Year:</strong> ${item.year}</p>
-        <p><strong>IMDb rating:</strong> ${item.rating}</p>
-        <p>${item.description}</p>
-        <p>More details: <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.link}</a></p>
+        <p style="margin:0"><strong>Year:</strong> ${item.year}</p>
+        <p style="margin:0"><strong>IMDb rating:</strong> ${item.rating}</p>
+        <p style="margin-top:8px">${item.description || 'No summary available.'}</p>
       `;
     } else if (type === "anime") {
       html += `
-        <p><strong>Studio:</strong> ${item.studio}</p>
-        <p>${item.synopsis}</p>
-        <p>More details: <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.link}</a></p>
+        <p style="margin-top:8px">${item.synopsis || 'No summary available.'}</p>
       `;
     } else if (type === "tvShows") {
       html += `
-        <p><strong>Status:</strong> ${item.seasons}</p>
-        <p>${item.synopsis}</p>
-        <p>More details: <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.link}</a></p>
+        <p style="margin-top:8px">${item.synopsis || 'No summary available.'}</p>
       `;
     }
-    html += "</section>";
-    contentContainer.appendChild(createElementFromHTML(html));
+
+    html += `
+        </div>
+      </section>`;
+
+    const el = createElementFromHTML(html);
+    el.addEventListener('click', () => showDetailModal(item, type));
+    contentContainer.appendChild(el);
   });
+}
+
+function showDetailModal(item, type) {
+  const existing = document.getElementById('detail-modal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'detail-modal';
+  overlay.style.position = 'fixed';
+  overlay.style.left = 0;
+  overlay.style.top = 0;
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.background = 'rgba(0,0,0,0.6)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = 10000;
+
+  const card = document.createElement('div');
+  card.style.maxWidth = '900px';
+  card.style.width = '95%';
+  card.style.background = '#fff';
+  card.style.borderRadius = '8px';
+  card.style.padding = '18px';
+  card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+
+  card.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <img src="${item.image || '/assets/placeholder.svg'}" alt="${item.title}" style="width:220px;height:auto;border-radius:6px;object-fit:cover">
+      <div style="flex:1;min-width:200px">
+        <h2 style="margin-top:0">${item.title}</h2>
+        <p><strong>Genre:</strong> ${item.genre}</p>
+        ${type === 'movies' ? `<p><strong>Year:</strong> ${item.year}</p><p><strong>IMDb rating:</strong> ${item.rating || 'N/A'}</p>` : ''}
+        <p style="margin-top:8px">${item.description || item.synopsis || 'No summary available.'}</p>
+        <p style="margin-top:10px"><a href="${item.link || '#'}" target="_blank" rel="noopener">More on external site</a></p>
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:12px">
+      <button id="detail-close" style="padding:8px 12px;border-radius:6px;border:none;background:#0b5fff;color:#fff;cursor:pointer">Close</button>
+    </div>
+  `;
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  document.getElementById('detail-close').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
 
 function createElementFromHTML(html) {
@@ -424,7 +441,7 @@ async function init() {
     renderItems(filteredItems, pageKey);
     setStatus("Live content loaded from trusted sources.");
   } else if (pageKey === "movies" && !(TRAKT_CLIENT_ID || TMDB_API_KEY)) {
-    setStatus("Local movie data is shown. Add a Trakt Client ID or TMDb API key in app.js to enable live movie updates.");
+    setStatus("Local movie data is shown. Configure TRAKT_CLIENT_ID on the server to enable live movie updates.");
   } else {
     const err = lastLiveError ? ` Live error: ${lastLiveError}` : "";
     setStatus(`Showing local content. Live updates failed or are unavailable.${err}`, true);

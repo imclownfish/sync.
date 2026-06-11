@@ -109,6 +109,66 @@ app.get('/api/trakt/refresh', async (req, res) => {
   }
 });
 
+// Jikan anime proxy with cache
+let jikanCache = null;
+let jikanCacheTs = 0;
+const JIKAN_CACHE_TTL = 1000 * 60 * 5;
+app.get('/api/jikan/top/anime', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 80;
+  const now = Date.now();
+  if (jikanCache && (now - jikanCacheTs) < JIKAN_CACHE_TTL) {
+    return res.json(jikanCache.slice(0, limit));
+  }
+  try {
+    const endpoint = `https://api.jikan.moe/v4/top/anime?limit=${limit}`;
+    const response = await fetch(endpoint, { headers: { 'Accept': 'application/json', 'User-Agent': 'Aneria/1.0' } });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`Jikan ${response.status}: ${text}`);
+    }
+    const data = await response.json();
+    const arr = (data.data || []).slice(0, limit);
+    jikanCache = arr;
+    jikanCacheTs = Date.now();
+    res.json(arr);
+  } catch (err) {
+    console.error('Jikan proxy error:', err);
+    res.status(502).json({ error: 'Failed to fetch from Jikan', detail: String(err) });
+  }
+});
+
+// TVmaze proxy with cache (returns combined pages)
+let tvCache = null;
+let tvCacheTs = 0;
+const TV_CACHE_TTL = 1000 * 60 * 5;
+app.get('/api/tvmaze/shows', async (req, res) => {
+  const pages = req.query.pages ? req.query.pages.split(',').map(Number) : [0,1,2];
+  const now = Date.now();
+  if (tvCache && (now - tvCacheTs) < TV_CACHE_TTL) {
+    return res.json(tvCache.slice(0, 120));
+  }
+  try {
+    const results = [];
+    for (const p of pages) {
+      const endpoint = `https://api.tvmaze.com/shows?page=${p}`;
+      const response = await fetch(endpoint, { headers: { 'Accept': 'application/json', 'User-Agent': 'Aneria/1.0' } });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`TVmaze ${response.status}: ${text}`);
+      }
+      const data = await response.json();
+      results.push(...data);
+    }
+    const shows = results.slice(0, 120);
+    tvCache = shows;
+    tvCacheTs = Date.now();
+    res.json(shows);
+  } catch (err) {
+    console.error('TVmaze proxy error:', err);
+    res.status(502).json({ error: 'Failed to fetch from TVmaze', detail: String(err) });
+  }
+});
+
 // Status endpoint so the client can detect whether proxy is configured
 app.get('/api/proxy/status', (req, res) => {
   res.json({ traktConfigured: Boolean(TRAKT_CLIENT_ID) });
