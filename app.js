@@ -309,7 +309,7 @@ function renderItems(items, type) {
   contentContainer.innerHTML = "";
 
   items.forEach(item => {
-    const imgSrc = item.image || '/assets/placeholder.svg';
+    const imgSrc = item.image || '/placeholder.svg';
     const imgHtml = `<img src="${imgSrc}" alt="${item.title}" style="width:120px;height:auto;border-radius:6px;object-fit:cover;">`;
     let html = `
       <section class="item" style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:10px;border-bottom:1px solid #eee;">
@@ -372,7 +372,7 @@ function showDetailModal(item, type) {
 
   card.innerHTML = `
     <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <img src="${item.image || '/assets/placeholder.svg'}" alt="${item.title}" style="width:220px;height:auto;border-radius:6px;object-fit:cover">
+      <img src="${item.image || '/placeholder.svg'}" alt="${item.title}" style="width:220px;height:auto;border-radius:6px;object-fit:cover">
       <div style="flex:1;min-width:200px">
         <h2 style="margin-top:0">${item.title}</h2>
         <p><strong>Genre:</strong> ${item.genre}</p>
