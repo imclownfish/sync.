@@ -12,6 +12,7 @@ const dataFallback = {
       year: "2010",
       rating: "8.8/10",
       description: "A mind-bending heist film directed by Christopher Nolan, following a team of specialists who enter dreams to steal and plant ideas.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt1375666/"
     },
     {
@@ -20,6 +21,7 @@ const dataFallback = {
       year: "2019",
       rating: "8.6/10",
       description: "Bong Joon-ho's Oscar-winning social thriller about two families from different economic worlds whose lives become dangerously intertwined.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt6751668/"
     },
     {
@@ -28,6 +30,7 @@ const dataFallback = {
       year: "2014",
       rating: "8.1/10",
       description: "A whimsical story of a legendary concierge and a lobby boy on an adventure through a fictional European kingdom in the 1930s.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt2278388/"
     }
   ],
@@ -37,6 +40,7 @@ const dataFallback = {
       genre: "Action, Dark Fantasy",
       studio: "MAPPA / Wit Studio",
       synopsis: "Humanity fights for survival behind massive walls as mysterious Titans threaten destruction and secrets emerge from the ruins.",
+      image: "/assets/placeholder.svg",
       link: "https://attackontitan.fandom.com/wiki/Attack_on_Titan"
     },
     {
@@ -44,6 +48,7 @@ const dataFallback = {
       genre: "Action, Fantasy",
       studio: "Ufotable",
       synopsis: "A young swordsman joins the Demon Slayer Corps to avenge his family and cure his sister after a demon attack transforms her into one of them.",
+      image: "/assets/placeholder.svg",
       link: "https://kimetsu-no-yaiba.fandom.com/wiki/Demon_Slayer:_Kimetsu_no_Yaiba"
     },
     {
@@ -51,6 +56,7 @@ const dataFallback = {
       genre: "Superhero, School",
       studio: "Bones",
       synopsis: "In a world where most people have superpowers, a powerless boy trains at a hero academy after inheriting the ability of the world's greatest hero.",
+      image: "/assets/placeholder.svg",
       link: "https://myheroacademia.fandom.com/wiki/My_Hero_Academia"
     }
   ],
@@ -60,6 +66,7 @@ const dataFallback = {
       genre: "Sci-Fi, Horror",
       seasons: "4",
       synopsis: "A group of friends in the 1980s uncovers supernatural threats in their town while trying to rescue a missing boy.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt4574334/"
     },
     {
@@ -67,6 +74,7 @@ const dataFallback = {
       genre: "Historical Drama",
       seasons: "6",
       synopsis: "A dramatized history of the reign of Queen Elizabeth II and the political and personal events that shaped the modern British monarchy.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt4786824/"
     },
     {
@@ -74,6 +82,7 @@ const dataFallback = {
       genre: "Sci-Fi, Anthology",
       seasons: "6",
       synopsis: "A collection of standalone episodes exploring dark and often dystopian consequences of modern technology.",
+      image: "/assets/placeholder.svg",
       link: "https://www.imdb.com/title/tt2085059/"
     }
   ]
@@ -94,13 +103,7 @@ function showProxyNotice(status) {
     btn = document.createElement('button');
     btn.id = 'refresh-live-btn';
     btn.textContent = 'Refresh live data';
-    btn.style.marginLeft = '12px';
-    btn.style.padding = '6px 10px';
-    btn.style.borderRadius = '6px';
-    btn.style.background = '#0b5fff';
-    btn.style.color = '#fff';
-    btn.style.border = 'none';
-    btn.style.cursor = 'pointer';
+    btn.className = 'refresh-btn';
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       const prev = btn.textContent;
@@ -179,6 +182,9 @@ async function fetchTmdbGenres() {
   } catch (error) {
     console.warn("TMDb genre list unavailable.", error);
     lastLiveError = error.message || String(error);
+    return {};
+  }
+}
 
 function getRatingFromMovie(m) {
   if (!m) return 'N/A';
@@ -192,14 +198,17 @@ function getRatingFromMovie(m) {
   }
   return 'N/A';
 }
-    return {};
-  }
-}
 
 function mapMovie(movie, genreMap = {}) {
   const genreNames = (movie.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
-    btn.textContent = 'Refresh live data';
-    btn.className = 'refresh-btn';
+  return {
+    title: movie.title || movie.name || 'Untitled',
+    genre: genreNames.length ? genreNames.slice(0, 3).join(', ') : 'Movie',
+    year: movie.release_date ? movie.release_date.slice(0, 4) : 'N/A',
+    rating: movie.vote_average ? `${movie.vote_average.toFixed(1)}/10` : 'N/A',
+    description: movie.overview || 'No summary available.',
+    link: `https://www.themoviedb.org/movie/${movie.id}`
+  };
 }
 
 async function fetchExternalMovies() {
@@ -451,8 +460,8 @@ async function init() {
     filteredItems = currentItems;
     renderItems(filteredItems, pageKey);
     setStatus("Live content loaded from trusted sources.");
-  } else if (pageKey === "movies" && !(TRAKT_CLIENT_ID || TMDB_API_KEY)) {
-    setStatus("Local movie data is shown. Configure TRAKT_CLIENT_ID on the server to enable live movie updates.");
+  } else if (pageKey === "movies" && proxy && proxy.traktConfigured === false) {
+    setStatus("Local movie data is shown because the server Trakt proxy is not configured.");
   } else {
     const err = lastLiveError ? ` Live error: ${lastLiveError}` : "";
     setStatus(`Showing local content. Live updates failed or are unavailable.${err}`, true);

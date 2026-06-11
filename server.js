@@ -33,7 +33,7 @@ try {
 async function fetchTraktWithRetry(limit = 80, retries = 2) {
   if (!TRAKT_CLIENT_ID) throw new Error('Trakt client id not configured');
 
-  const endpoint = `https://api.trakt.tv/movies/trending?limit=${limit}`;
+  const endpoint = `https://api.trakt.tv/movies/trending?limit=${limit}&extended=images`;
   let attempt = 0;
   let lastErr = null;
 
