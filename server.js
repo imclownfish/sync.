@@ -42,8 +42,10 @@ async function fetchTraktWithRetry(limit = 80, retries = 2) {
       const response = await fetch(endpoint, {
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'trakt-api-version': '2',
-          'trakt-api-key': TRAKT_CLIENT_ID
+          'trakt-api-key': TRAKT_CLIENT_ID,
+          'User-Agent': 'Aneria/1.0 (+https://aneria.onrender.com)'
         }
       });
       if (!response.ok) {
