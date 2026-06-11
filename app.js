@@ -179,20 +179,27 @@ async function fetchTmdbGenres() {
   } catch (error) {
     console.warn("TMDb genre list unavailable.", error);
     lastLiveError = error.message || String(error);
+
+function getRatingFromMovie(m) {
+  if (!m) return 'N/A';
+  // Try common fields from Trakt and other providers
+  const candidates = [m.rating, m.vote_average, m.score, (m.ratings && (m.ratings.rating || m.ratings.average)), (m.stats && m.stats.rating)];
+  for (const c of candidates) {
+    if (c === undefined || c === null) continue;
+    const num = typeof c === 'number' ? c : parseFloat(c);
+    if (!isNaN(num)) return `${num.toFixed(1)}/10`;
+    if (String(c).trim()) return String(c);
+  }
+  return 'N/A';
+}
     return {};
   }
 }
 
 function mapMovie(movie, genreMap = {}) {
   const genreNames = (movie.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
-  return {
-    title: movie.title || movie.name || "Untitled",
-    genre: genreNames.length ? genreNames.slice(0, 3).join(", ") : "Movie",
-    year: movie.release_date ? movie.release_date.slice(0, 4) : "N/A",
-    rating: movie.vote_average ? `${movie.vote_average.toFixed(1)}/10` : "N/A",
-    description: movie.overview || "No summary available.",
-    link: `https://www.themoviedb.org/movie/${movie.id}`
-  };
+    btn.textContent = 'Refresh live data';
+    btn.className = 'refresh-btn';
 }
 
 async function fetchExternalMovies() {
@@ -203,13 +210,14 @@ async function fetchExternalMovies() {
       const data = await proxyRes.json();
       return (data || []).map(entry => {
         const m = entry.movie || entry;
+        const image = (m.images && (m.images.poster && (m.images.poster.full || m.images.poster.thumb))) || null;
         return {
           title: m.title || "Untitled",
           genre: (m.genres || []).slice(0, 3).join(", ") || "Movie",
           year: m.year || "N/A",
-          rating: m.rating ? `${typeof m.rating === 'number' && m.rating.toFixed ? m.rating.toFixed(1) : m.rating}/10` : "N/A",
-          description: m.overview || m.synopsis || "No summary available.",
-          image: (m.images && (m.images.poster && (m.images.poster.full || m.images.poster.thumb))) || null,
+          rating: getRatingFromMovie(m),
+          description: sanitizeText(m.overview || m.synopsis || m.description) || "No summary available.",
+          image: image && String(image).replace(/^http:\/\//i, 'https://') || null,
           link: m.ids && m.ids.slug ? `https://trakt.tv/movies/${m.ids.slug}` : (m.ids && m.ids.tmdb ? `https://www.themoviedb.org/movie/${m.ids.tmdb}` : "#")
         };
       });
@@ -241,14 +249,18 @@ async function fetchExternalMovies() {
 async function fetchExternalAnime() {
   try {
     const data = await fetchJson('/api/jikan/top/anime?limit=80');
-    return (data || []).map(anime => ({
-      title: anime.title,
-      genre: (anime.genres || []).slice(0, 3).map(g => g.name).join(', ') || 'Anime',
-      studio: (anime.studios || []).map(s => s.name).join(', ') || 'Unknown',
-      synopsis: sanitizeText(anime.synopsis || (anime.synopsis && anime.synopsis.text) || '' ) || 'No summary available.',
-      image: (anime.images && ((anime.images.jpg && (anime.images.jpg.large_image_url || anime.images.jpg.image_url)) || anime.images.jpg.image_url)) || anime.image_url || null,
-      link: anime.url || (anime.website || '#')
-    }));
+    return (data || []).map(anime => {
+      const rawImage = (anime.images && ((anime.images.jpg && (anime.images.jpg.large_image_url || anime.images.jpg.image_url)) || anime.images.jpg && anime.images.jpg.image_url)) || anime.image_url || null;
+      const image = rawImage ? String(rawImage).replace(/^http:\/\//i, 'https://') : null;
+      return {
+        title: anime.title,
+        genre: (anime.genres || []).slice(0, 3).map(g => g.name).join(', ') || 'Anime',
+        studio: (anime.studios || []).map(s => s.name).join(', ') || 'Unknown',
+        synopsis: sanitizeText(anime.synopsis || (anime.synopsis && anime.synopsis.text) || '' ) || 'No summary available.',
+        image: image,
+        link: anime.url || (anime.website || '#')
+      };
+    });
   } catch (error) {
     console.warn('Unable to fetch live anime data from Jikan.', error);
     lastLiveError = error.message || String(error);
@@ -259,14 +271,18 @@ async function fetchExternalAnime() {
 async function fetchExternalTVShows() {
   try {
     const shows = await fetchJson('/api/tvmaze/shows');
-    return (shows || []).slice(0, 120).map(show => ({
-      title: show.name,
-      genre: (show.genres || []).join(', ') || 'TV',
-      seasons: show.status || 'N/A',
-      synopsis: sanitizeText(show.summary || show.summary_text || '' ) || 'No summary available.',
-      image: show.image && (show.image.medium || show.image.original) || null,
-      link: show.url || (show._links && show._links.self && show._links.self.href) || '#'
-    }));
+    return (shows || []).slice(0, 120).map(show => {
+      const rawImage = show.image && (show.image.medium || show.image.original) || null;
+      const image = rawImage ? String(rawImage).replace(/^http:\/\//i, 'https://') : null;
+      return {
+        title: show.name,
+        genre: (show.genres || []).join(', ') || 'TV',
+        seasons: show.status || 'N/A',
+        synopsis: sanitizeText(show.summary || show.summary_text || '' ) || 'No summary available.',
+        image: image,
+        link: show.url || (show._links && show._links.self && show._links.self.href) || '#'
+      };
+    });
   } catch (error) {
     console.warn('Unable to fetch live TV show data from TVmaze.', error);
     lastLiveError = error.message || String(error);
@@ -309,20 +325,20 @@ function renderItems(items, type) {
   contentContainer.innerHTML = "";
 
   items.forEach(item => {
-    const imgSrc = item.image || '/placeholder.svg';
-    const imgHtml = `<img src="${imgSrc}" alt="${item.title}" style="width:120px;height:auto;border-radius:6px;object-fit:cover;">`;
+    const imgSrc = item.image || '/assets/placeholder.svg';
+    const imgHtml = `<img src="${imgSrc}" alt="${item.title}" loading="lazy" onerror="this.onerror=null;this.src='/assets/placeholder.svg'">`;
     let html = `
-      <section class="item" style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:10px;border-bottom:1px solid #eee;">
+      <section class="item">
         ${imgHtml}
         <div style="flex:1">
-          <h2 style="margin:0 0 6px 0">${item.title}</h2>
-          <p style="margin:0 0 6px 0"><strong>Genre:</strong> ${item.genre}</p>
+          <h2>${item.title}</h2>
+          <p><strong>Genre:</strong> ${item.genre}</p>
     `;
 
     if (type === "movies") {
       html += `
-        <p style="margin:0"><strong>Year:</strong> ${item.year}</p>
-        <p style="margin:0"><strong>IMDb rating:</strong> ${item.rating}</p>
+        <p><strong>Year:</strong> ${item.year}</p>
+        <p><strong>Rating:</strong> ${item.rating}</p>
         <p style="margin-top:8px">${item.description || 'No summary available.'}</p>
       `;
     } else if (type === "anime") {
@@ -363,26 +379,21 @@ function showDetailModal(item, type) {
   overlay.style.zIndex = 10000;
 
   const card = document.createElement('div');
-  card.style.maxWidth = '900px';
-  card.style.width = '95%';
-  card.style.background = '#fff';
-  card.style.borderRadius = '8px';
-  card.style.padding = '18px';
-  card.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+  card.className = 'card';
 
   card.innerHTML = `
     <div style="display:flex;gap:16px;flex-wrap:wrap">
-      <img src="${item.image || '/placeholder.svg'}" alt="${item.title}" style="width:220px;height:auto;border-radius:6px;object-fit:cover">
+      <div class="left"><img src="${item.image || '/assets/placeholder.svg'}" alt="${item.title}" onerror="this.onerror=null;this.src='/assets/placeholder.svg'"></div>
       <div style="flex:1;min-width:200px">
         <h2 style="margin-top:0">${item.title}</h2>
-        <p><strong>Genre:</strong> ${item.genre}</p>
-        ${type === 'movies' ? `<p><strong>Year:</strong> ${item.year}</p><p><strong>IMDb rating:</strong> ${item.rating || 'N/A'}</p>` : ''}
+        <p class="meta"><strong>Genre:</strong> ${item.genre}</p>
+        ${type === 'movies' ? `<p class="meta"><strong>Year:</strong> ${item.year}</p><p class="meta"><strong>Rating:</strong> ${item.rating || 'N/A'}</p>` : ''}
         <p style="margin-top:8px">${item.description || item.synopsis || 'No summary available.'}</p>
         <p style="margin-top:10px"><a href="${item.link || '#'}" target="_blank" rel="noopener">More on external site</a></p>
       </div>
     </div>
     <div style="text-align:right;margin-top:12px">
-      <button id="detail-close" style="padding:8px 12px;border-radius:6px;border:none;background:#0b5fff;color:#fff;cursor:pointer">Close</button>
+      <button id="detail-close" class="close-btn">Close</button>
     </div>
   `;
 
