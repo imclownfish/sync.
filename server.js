@@ -6,6 +6,8 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const TRAKT_CLIENT_ID = process.env.TRAKT_CLIENT_ID || '';
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
 
 // Serve static files from the site root
 app.use(express.static(path.join(__dirname)));
@@ -223,6 +225,75 @@ app.get('/api/tvmaze/shows', async (req, res) => {
   } catch (err) {
     console.error('TVmaze proxy error:', err);
     res.status(502).json({ error: 'Failed to fetch from TVmaze', detail: String(err) });
+  }
+});
+
+app.get('/api/watch/providers', async (req, res) => {
+  if (!TMDB_API_KEY) {
+    return res.status(502).json({ error: 'TMDb API key not configured on the server.' });
+  }
+
+  const query = String(req.query.query || '').trim();
+  const tmdbId = req.query.tmdbId ? parseInt(req.query.tmdbId, 10) : null;
+  const type = String(req.query.type || 'movie').toLowerCase();
+  const region = String(req.query.region || 'US').toUpperCase();
+
+  try {
+    let providerType = type === 'tv' ? 'tv' : 'movie';
+    let id = tmdbId;
+
+    if (!id) {
+      if (!query) {
+        return res.status(400).json({ error: 'tmdbId or query parameter is required.' });
+      }
+
+      const searchType = type === 'tv' ? 'tv' : type === 'multi' ? 'multi' : 'movie';
+      const endpoint = `${TMDB_BASE}/search/${searchType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`;
+      const response = await fetch(endpoint, { headers: { 'Accept': 'application/json', 'User-Agent': 'Aneria/1.0' } });
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`TMDb search ${response.status}: ${text}`);
+      }
+      const data = await response.json();
+      const result = Array.isArray(data.results) ? data.results.find(r => r.media_type !== 'person') || data.results[0] : null;
+      if (!result) {
+        return res.status(404).json({ error: 'No TMDb entry found for that query.' });
+      }
+      id = result.id;
+      providerType = result.media_type === 'tv' ? 'tv' : 'movie';
+    }
+
+    const providerUrl = `${TMDB_BASE}/${providerType}/${id}/watch/providers?api_key=${TMDB_API_KEY}`;
+    const providerRes = await fetch(providerUrl, { headers: { 'Accept': 'application/json', 'User-Agent': 'Aneria/1.0' } });
+    if (!providerRes.ok) {
+      const text = await providerRes.text().catch(() => '');
+      throw new Error(`TMDb providers ${providerRes.status}: ${text}`);
+    }
+
+    const providerData = await providerRes.json();
+    const regionData = providerData.results && (providerData.results[region] || providerData.results.US || Object.values(providerData.results)[0]);
+    const providers = [];
+    if (regionData) {
+      ['flatrate', 'rent', 'buy', 'free', 'ads'].forEach((group) => {
+        if (Array.isArray(regionData[group])) {
+          regionData[group].forEach(provider => {
+            providers.push({
+              provider_id: provider.provider_id,
+              provider_name: provider.provider_name,
+              logo_path: provider.logo_path,
+              type: group,
+              display_priority: provider.display_priority,
+              url: regionData.link || null
+            });
+          });
+        }
+      });
+    }
+
+    res.json({ success: true, region: region, type: providerType, providers, link: (regionData && regionData.link) || null });
+  } catch (err) {
+    console.error('Watch provider lookup error:', err);
+    res.status(502).json({ error: 'Failed to fetch watch providers', detail: String(err) });
   }
 });
 
