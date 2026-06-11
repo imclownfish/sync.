@@ -46,7 +46,10 @@ async function fetchTraktWithRetry(limit = 80, retries = 2) {
           'trakt-api-key': TRAKT_CLIENT_ID
         }
       });
-      if (!response.ok) throw new Error(`Trakt ${response.status}`);
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`Trakt ${response.status}: ${text}`);
+      }
       const data = await response.json();
       return data;
     } catch (err) {
