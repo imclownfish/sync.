@@ -216,6 +216,16 @@ function getMovieImage(m) {
   return raw ? String(raw).replace(/^http:\/\//i, 'https://') : null;
 }
 
+// Search helper for movies (server-side search via Trakt)
+let searchDebounceTimer = null;
+function debounce(fn, wait) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn(...args), wait);
+  };
+}
+
 function mapMovie(movie, genreMap = {}) {
   const genreNames = (movie.genre_ids || []).map(id => genreMap[id]).filter(Boolean);
   return {
@@ -480,9 +490,40 @@ function applySearchFilter(value) {
 function attachSearch() {
   const searchInput = document.getElementById("search");
   if (!searchInput) return;
-  searchInput.addEventListener("input", (event) => {
-    applySearchFilter(event.target.value);
-  });
+  const remoteSearch = debounce(async (q) => {
+    if (!q || q.trim().length < 3) {
+      applySearchFilter(q);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/trakt/search/movie?q=${encodeURIComponent(q)}&limit=40`);
+      if (res.ok) {
+        const data = await res.json();
+        // Trakt search returns array of {type, score, movie}
+        const mapped = (data || []).map(r => (r.movie || r));
+        const items = mapped.map(m => ({
+          title: m.title || m.name || 'Untitled',
+          genre: (m.genres || []).slice(0,3).join(', ') || 'Movie',
+          year: m.year || 'N/A',
+          rating: getRatingFromMovie(m),
+          description: sanitizeText(m.overview || m.synopsis || m.description) || 'No summary available.',
+          image: getMovieImage(m) || '/assets/placeholder.svg',
+          link: m.ids && m.ids.slug ? `https://trakt.tv/movies/${m.ids.slug}` : '#'
+        }));
+        currentItems = items;
+        filteredItems = items;
+        renderItems(filteredItems, pageKey);
+        setStatus(`Search results for "${q}"`);
+        return;
+      }
+    } catch (err) {
+      console.warn('Remote search failed', err);
+      lastLiveError = err.message || String(err);
+    }
+    applySearchFilter(q);
+  }, 350);
+
+  searchInput.addEventListener('input', (e) => remoteSearch(e.target.value));
 }
 
 async function init() {

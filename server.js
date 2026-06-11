@@ -91,6 +91,35 @@ app.get('/api/trakt/movies/trending', async (req, res) => {
   }
 });
 
+// Trakt movie search proxy
+app.get('/api/trakt/search/movie', async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const limit = parseInt(req.query.limit, 10) || 20;
+  if (!q) return res.status(400).json({ error: 'query required' });
+  if (!TRAKT_CLIENT_ID) return res.status(502).json({ error: 'Trakt proxy not configured' });
+  try {
+    const endpoint = `https://api.trakt.tv/search/movie?query=${encodeURIComponent(q)}&limit=${limit}&extended=images`;
+    const response = await fetch(endpoint, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'trakt-api-version': '2',
+        'trakt-api-key': TRAKT_CLIENT_ID,
+        'User-Agent': 'Aneria/1.0 (+https://aneria.onrender.com)'
+      }
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`Trakt search ${response.status}: ${text}`);
+    }
+    const data = await response.json();
+    res.json(data.slice(0, limit));
+  } catch (err) {
+    console.error('Trakt search error:', err);
+    res.status(502).json({ error: 'Failed to search Trakt', detail: String(err) });
+  }
+});
+
 // Refresh endpoint: forces a fresh fetch and updates cache
 app.get('/api/trakt/refresh', async (req, res) => {
   try {
