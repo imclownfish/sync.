@@ -1,30 +1,7 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0c12" />
-    <meta name="description" content="Find your next anime and keep your watch progress in sync." />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="preconnect" href="https://graphql.anilist.co" />
-    <link rel="preconnect" href="https://s4.anilist.co" />
-    <link rel="stylesheet" href="styles.css" />
-    <title>sync. — anime, organized</title>
-  </head>
-  <body>
-    <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="sync. home">sync<span>.</span></a>
-      <nav class="nav-links" aria-label="Main navigation"><a class="active" href="#discover">Discover</a><a href="#my-list">My list <span id="list-count" class="count-pill">0</span></a></nav>
-      <button id="open-search" class="search-button" type="button" aria-label="Search anime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg><span>Search</span><kbd>⌘ K</kbd></button>
-    </header>
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title"><p class="eyebrow">YOUR NEXT OBSESSION</p><h1 id="hero-title">Less scrolling.<br /><em>More watching.</em></h1><p class="hero-copy">Find anime worth your time, save what caught your eye, and remember exactly where you left off.</p><div class="hero-actions"><button id="hero-search" class="button primary" type="button">Find an anime</button><a class="button ghost" href="#my-list">Open my list</a></div><div class="hero-rule" aria-hidden="true"><span></span><p>built for your backlog</p></div></section>
-      <section id="discover" class="content-section" aria-labelledby="trending-title"><div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2 id="trending-title">Trending this week</h2></div><button id="refresh" class="text-button" type="button">Refresh picks</button></div><div id="genre-filters" class="filters" aria-label="Filter by genre"></div><div id="trending-grid" class="anime-grid" aria-live="polite"></div></section>
-      <section id="my-list" class="content-section my-list" aria-labelledby="list-title"><div class="section-heading"><div><p class="eyebrow">YOURS</p><h2 id="list-title">My list</h2></div><div id="list-tabs" class="status-tabs" aria-label="Filter your list"></div></div><div id="watchlist" class="watchlist" aria-live="polite"></div></section>
-    </main>
-    <footer><span>sync.</span> is a personal tracker. Anime information and artwork provided by AniList.</footer>
-    <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title"><form method="dialog" class="search-shell"><div class="search-input-row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg><input id="search-input" type="search" placeholder="Search anime..." autocomplete="off" /><button class="escape" value="cancel" aria-label="Close search">ESC</button></div><p id="search-title" class="search-hint">Search the anime catalog</p><div id="search-results" class="search-results"></div></form></dialog>
-    <dialog id="detail-dialog" class="detail-dialog"></dialog><script src="app.js?v=5"></script>
-  </body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><meta name="theme-color" content="#0a0c12"/><meta name="description" content="Find your next anime and keep your watch progress in sync."/><link rel="icon" type="image/svg+xml" href="favicon.svg"/><link rel="preconnect" href="https://graphql.anilist.co"/><link rel="preconnect" href="https://s4.anilist.co"/><link rel="stylesheet" href="styles.css"/><title>sync. — anime, organized</title></head>
+<body><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div><header class="topbar"><a class="brand" href="#top" aria-label="sync. home">sync<span>.</span></a><nav class="nav-links" aria-label="Main navigation"><a class="active" href="#discover">Discover</a><a href="list.html">My list <span id="list-count" class="count-pill">0</span></a></nav><button id="open-search" class="search-button" type="button" aria-label="Search anime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><span>Search</span><kbd>⌘ K</kbd></button></header>
+<main id="top"><section class="hero"><p class="eyebrow">YOUR NEXT OBSESSION</p><h1>Less scrolling.<br/><em>More watching.</em></h1><p class="hero-copy">Real anime data, a cleaner backlog, and less time deciding what to start.</p><div class="hero-actions"><button id="hero-search" class="button primary" type="button">Find an anime</button><a class="button ghost" href="#all-anime">Browse everything</a></div></section>
+<section id="discover" class="content-section"><div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2>Trending this week</h2></div><p id="trending-update" class="quiet-status">Updating from AniList</p></div><div id="trending-grid" class="anime-grid" aria-live="polite"></div></section>
+<section id="all-anime" class="content-section catalog-section"><div class="section-heading"><div><p class="eyebrow">THE CATALOG</p><h2>All anime</h2></div><p id="catalog-count" class="quiet-status"></p></div><div class="catalog-controls"><label>Genre<select id="genre-select"><option value="">Any genre</option></select></label><label>Year<select id="year-select"><option value="">Any year</option></select></label><label>Format<select id="format-select"><option value="">Any format</option><option value="TV">TV</option><option value="MOVIE">Movie</option><option value="OVA">OVA</option><option value="ONA">ONA</option><option value="SPECIAL">Special</option></select></label><label>Airing<select id="status-select"><option value="">Any status</option><option value="RELEASING">Releasing</option><option value="FINISHED">Finished</option><option value="NOT_YET_RELEASED">Not yet released</option></select></label><button id="clear-filters" class="text-button" type="button">Clear filters</button></div><div id="catalog-grid" class="anime-grid"></div><div id="catalog-sentinel" class="catalog-sentinel"><span>Scroll for more</span></div></section></main>
+<footer><span>sync.</span> is a personal tracker. Anime information and artwork provided by AniList.</footer>
+<dialog id="search-dialog" class="search-dialog"><form method="dialog" class="search-shell"><div class="search-input-row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg><input id="search-input" type="search" placeholder="Search anime..." autocomplete="off"/><button class="escape" value="cancel" aria-label="Close search">ESC</button></div><p class="search-hint">Search the anime catalog</p><div id="search-results" class="search-results"></div></form></dialog><dialog id="detail-dialog" class="detail-dialog"></dialog><script src="app.js?v=6"></script></body></html>
