@@ -18,6 +18,7 @@ let selectedGenre = "All";
 let selectedState = "All";
 let searchTimer;
 let memoryList = [];
+let activeAnime = null;
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char])); }
 function imageOf(anime) { return anime?.images?.jpg?.large_image_url || anime?.images?.jpg?.image_url || "placeholder.svg"; }
@@ -73,6 +74,7 @@ async function getDetail(id) {
 async function openDetail(id) {
   detailDialog.innerHTML = `<div class="loading">Loading anime...</div>`; detailDialog.showModal();
   const anime = await getDetail(id); if (!anime) { detailDialog.close(); return; }
+  activeAnime = anime;
   const saved = isSaved(anime.mal_id);
   const type = anime.type || "TV"; const episodes = anime.episodes || "?";
   detailDialog.innerHTML = `<article class="detail"><img class="detail-poster" src="${escapeHtml(imageOf(anime))}" alt="${escapeHtml(titleOf(anime))} poster" />
@@ -80,12 +82,12 @@ async function openDetail(id) {
       <h2>${escapeHtml(titleOf(anime))}</h2><p class="detail-meta">★ ${anime.score?.toFixed?.(1) || "—"} &nbsp; ${anime.year || anime.aired?.from?.slice(0,4) || "TBA"}</p>
       <p class="detail-description">${escapeHtml(anime.synopsis || "No synopsis available yet.")}</p>
       <div class="tag-list">${(anime.genres || []).slice(0,5).map(genre => `<span class="tag">${escapeHtml(genre.name)}</span>`).join("")}</div>
-      <div class="detail-actions"><button class="button primary save-detail" data-id="${anime.mal_id}" type="button">${saved ? "In my list" : "Add to my list"}</button><a class="button ghost external" href="${escapeHtml(anime.url || `https://myanimelist.net/anime/${anime.mal_id}`)}" target="_blank" rel="noopener">More info</a></div>
+      <div class="detail-actions"><button class="button primary save-detail" data-id="${anime.mal_id}" type="button" onclick="window.syncAdd(this)">${saved ? "In my list" : "Add to my list"}</button><a class="button ghost external" href="${escapeHtml(anime.url || `https://myanimelist.net/anime/${anime.mal_id}`)}" target="_blank" rel="noopener">More info</a></div>
     </div></article>`;
   detailDialog.querySelector(".close-detail").addEventListener("click", () => detailDialog.close());
-  detailDialog.querySelector(".save-detail").addEventListener("click", event => { addToList(anime); event.currentTarget.textContent = "In my list"; });
 }
 function addToList(anime) { if (isSaved(anime.mal_id)) return; const list = getList(); list.unshift({ mal_id:anime.mal_id, title:titleOf(anime), image:imageOf(anime), genre:genreNames(anime), episodes:anime.episodes, status:"Planned" }); saveList(list); renderWatchlist(); }
+window.syncAdd = (button) => { if (activeAnime) { addToList(activeAnime); button.textContent = "In my list"; } };
 function openSearch() { searchDialog.showModal(); $("#search-input").focus(); }
 async function search(query) {
   const target = $("#search-results"); if (query.length < 2) { target.innerHTML = ""; return; }
