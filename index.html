@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0a0c12" />
     <meta name="description" content="Find your next anime and keep your watch progress in sync." />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="preconnect" href="https://api.jikan.moe" />
-    <link rel="preconnect" href="https://cdn.myanimelist.net" />
+    <link rel="preconnect" href="https://graphql.anilist.co" />
+    <link rel="preconnect" href="https://s4.anilist.co" />
     <link rel="stylesheet" href="styles.css" />
     <title>sync. — anime, organized</title>
   </head>
@@ -23,8 +23,8 @@
       <section id="discover" class="content-section" aria-labelledby="trending-title"><div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2 id="trending-title">Trending this week</h2></div><button id="refresh" class="text-button" type="button">Refresh picks</button></div><div id="genre-filters" class="filters" aria-label="Filter by genre"></div><div id="trending-grid" class="anime-grid" aria-live="polite"></div></section>
       <section id="my-list" class="content-section my-list" aria-labelledby="list-title"><div class="section-heading"><div><p class="eyebrow">YOURS</p><h2 id="list-title">My list</h2></div><div id="list-tabs" class="status-tabs" aria-label="Filter your list"></div></div><div id="watchlist" class="watchlist" aria-live="polite"></div></section>
     </main>
-    <footer><span>sync.</span> is a personal tracker. Anime information provided by Jikan / MyAnimeList.</footer>
+    <footer><span>sync.</span> is a personal tracker. Anime information and artwork provided by AniList.</footer>
     <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title"><form method="dialog" class="search-shell"><div class="search-input-row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg><input id="search-input" type="search" placeholder="Search anime..." autocomplete="off" /><button class="escape" value="cancel" aria-label="Close search">ESC</button></div><p id="search-title" class="search-hint">Search the anime catalog</p><div id="search-results" class="search-results"></div></form></dialog>
-    <dialog id="detail-dialog" class="detail-dialog"></dialog><script src="app.js?v=4"></script>
+    <dialog id="detail-dialog" class="detail-dialog"></dialog><script src="app.js?v=5"></script>
   </body>
 </html>
