@@ -1,139 +1,30 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aneria - Movies, Anime & TV Shows</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0d1117;
-      color: #f0f6fc;
-    }
-    header {
-      padding: 40px 20px;
-      text-align: center;
-      background: linear-gradient(135deg, #161b22 0%, #0b1220 100%);
-    }
-    header h1 {
-      margin: 0;
-      font-size: 3rem;
-    }
-    header p {
-      margin: 12px 0 0;
-      color: #8b949e;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    main {
-      padding: 30px 20px;
-    }
-    .grid {
-      display: grid;
-      gap: 20px;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    }
-    .card {
-      display: block;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 14px;
-      padding: 24px;
-      min-height: 180px;
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    }
-    .card:hover,
-    .card:focus-visible {
-      transform: translateY(-4px);
-      border-color: #58a6ff;
-      background: #1f2a38;
-      outline: none;
-    }
-    .card h2 {
-      margin-top: 0;
-      color: #58a6ff;
-    }
-    .card p {
-      color: #8b949e;
-      line-height: 1.6;
-    }
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-      flex-wrap: wrap;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .site-nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    .site-nav a {
-      color: #8b949e;
-      text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 10px;
-      border: 1px solid transparent;
-    }
-    .site-nav a:hover,
-    .site-nav a:focus-visible {
-      color: #58a6ff;
-      border-color: #58a6ff;
-      outline: none;
-    }
-    footer {
-      padding: 20px;
-      text-align: center;
-      color: #8b949e;
-      border-top: 1px solid #30363d;
-      margin-top: 30px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-inner">
-    <link rel="stylesheet" href="styles.css">
-      <div>
-        <h1>Aneria</h1>
-        <p>Watch movies, anime, TV shows, and more from one place. Browse featured collections, new releases, and curated playlists that refresh automatically from trusted sources.</p>
-      </div>
-      <nav class="site-nav">
-        <a href="index.html">Home</a>
-        <a href="movies.html">Movies</a>
-        <a href="anime.html">Anime</a>
-        <a href="tv-shows.html">TV Shows</a>
-        <a href="watchlist.html">Watchlist</a>
-      </nav>
-    </div>
-  </header>
-  <main>
-    <section class="grid">
-      <a class="card" href="movies.html">
-        <h2>Movies</h2>
-        <p>Explore the latest films, timeless classics, action blockbusters, dramas, comedies, and more.</p>
-      </a>
-      <a class="card" href="anime.html">
-        <h2>Anime</h2>
-        <p>Stream popular series, new seasons, and fan-favorite anime from across genres and studios.</p>
-      </a>
-      <a class="card" href="tv-shows.html">
-        <h2>TV Shows</h2>
-        <p>Catch up on hit series, binge-worthy dramas, reality shows, and sitcoms anytime.</p>
-      </a>
-    </section>
-  </main>
-  <footer>
-    © 2026 Aneria. Start watching now.
-  </footer>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a0c12" />
+    <meta name="description" content="Find your next anime and keep your watch progress in sync." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://api.jikan.moe" />
+    <link rel="preconnect" href="https://cdn.myanimelist.net" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>sync. — anime, organized</title>
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="sync. home">sync<span>.</span></a>
+      <nav class="nav-links" aria-label="Main navigation"><a class="active" href="#discover">Discover</a><a href="#my-list">My list <span id="list-count" class="count-pill">0</span></a></nav>
+      <button id="open-search" class="search-button" type="button" aria-label="Search anime"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg><span>Search</span><kbd>⌘ K</kbd></button>
+    </header>
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title"><p class="eyebrow">YOUR NEXT OBSESSION</p><h1 id="hero-title">Less scrolling.<br /><em>More watching.</em></h1><p class="hero-copy">Find anime worth your time, save what caught your eye, and remember exactly where you left off.</p><div class="hero-actions"><button id="hero-search" class="button primary" type="button">Find an anime</button><a class="button ghost" href="#my-list">Open my list</a></div><div class="hero-rule" aria-hidden="true"><span></span><p>built for your backlog</p></div></section>
+      <section id="discover" class="content-section" aria-labelledby="trending-title"><div class="section-heading"><div><p class="eyebrow">RIGHT NOW</p><h2 id="trending-title">Trending this week</h2></div><button id="refresh" class="text-button" type="button">Refresh picks</button></div><div id="genre-filters" class="filters" aria-label="Filter by genre"></div><div id="trending-grid" class="anime-grid" aria-live="polite"></div></section>
+      <section id="my-list" class="content-section my-list" aria-labelledby="list-title"><div class="section-heading"><div><p class="eyebrow">YOURS</p><h2 id="list-title">My list</h2></div><div id="list-tabs" class="status-tabs" aria-label="Filter your list"></div></div><div id="watchlist" class="watchlist" aria-live="polite"></div></section>
+    </main>
+    <footer><span>sync.</span> is a personal tracker. Anime information provided by Jikan / MyAnimeList.</footer>
+    <dialog id="search-dialog" class="search-dialog" aria-labelledby="search-title"><form method="dialog" class="search-shell"><div class="search-input-row"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg><input id="search-input" type="search" placeholder="Search anime..." autocomplete="off" /><button class="escape" value="cancel" aria-label="Close search">ESC</button></div><p id="search-title" class="search-hint">Search the anime catalog</p><div id="search-results" class="search-results"></div></form></dialog>
+    <dialog id="detail-dialog" class="detail-dialog"></dialog><script src="app.js?v=2"></script>
+  </body>
 </html>

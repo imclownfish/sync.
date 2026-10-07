@@ -1,13 +1,6 @@
 {
-  "name": "aneria-site-proxy",
+  "name": "sync-anime-tracker",
+  "private": true,
   "version": "1.0.0",
-  "description": "Static site with a small server proxy for Trakt API to avoid CORS",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^2.6.7"
-  }
+  "description": "A browser-first anime discovery and progress tracker."
 }
