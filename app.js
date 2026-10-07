@@ -17,13 +17,14 @@ let trending = [];
 let selectedGenre = "All";
 let selectedState = "All";
 let searchTimer;
+let memoryList = [];
 
 function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char])); }
 function imageOf(anime) { return anime?.images?.jpg?.large_image_url || anime?.images?.jpg?.image_url || "placeholder.svg"; }
 function titleOf(anime) { return anime.title_english || anime.title || "Untitled"; }
 function genreNames(anime) { return (anime.genres || []).slice(0, 2).map(genre => genre.name).join(" · ") || "Anime"; }
-function getList() { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch { return []; } }
-function saveList(list) { localStorage.setItem(STORE, JSON.stringify(list)); updateListCount(); }
+function getList() { try { return JSON.parse(localStorage.getItem(STORE)) || memoryList; } catch { return memoryList; } }
+function saveList(list) { memoryList = list; try { localStorage.setItem(STORE, JSON.stringify(list)); } catch { /* private contexts can still use this tab's list */ } updateListCount(); }
 function updateListCount() { $("#list-count").textContent = getList().length; }
 function isSaved(id) { return getList().some(item => item.mal_id === id); }
 
