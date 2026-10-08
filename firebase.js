@@ -84,7 +84,10 @@ window.syncAccount = {
 document.addEventListener("click", async event => {
   const button = event.target.closest("#account-button");
   if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
   button.disabled = true;
+  button.textContent = user ? "Signing out…" : "Opening Google…";
   try {
     if (user) await signOut(auth);
     else await signInWithPopup(auth, provider);
@@ -93,6 +96,7 @@ document.addEventListener("click", async event => {
     alert("Sign-in did not finish. Check that this site is listed in Firebase's authorized domains, then try again.");
   } finally {
     button.disabled = false;
+    renderAccount();
   }
 });
 
