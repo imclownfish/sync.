@@ -52,6 +52,7 @@ function renderAccount() {
   }
   const button = accountButton();
   if (!button) return;
+  button.onclick = handleAccountClick;
   if (!user) {
     button.classList.remove("is-signed-in");
     button.textContent = "Sign in";
@@ -81,11 +82,10 @@ window.syncAccount = {
   signedIn: () => Boolean(user)
 };
 
-document.addEventListener("click", async event => {
-  const button = event.target.closest("#account-button");
-  if (!button) return;
+async function handleAccountClick(event) {
   event.preventDefault();
-  event.stopPropagation();
+  event.stopImmediatePropagation();
+  const button = event.currentTarget;
   button.disabled = true;
   button.textContent = user ? "Signing out…" : "Opening Google…";
   try {
@@ -98,7 +98,7 @@ document.addEventListener("click", async event => {
     button.disabled = false;
     renderAccount();
   }
-});
+}
 
 onAuthStateChanged(auth, async nextUser => {
   user = nextUser;
