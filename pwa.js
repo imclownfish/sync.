@@ -1,5 +1,9 @@
 let deferredInstall = null;
 
+const progressScript = document.createElement("script");
+progressScript.src = "progress.js?v=3";
+document.head.appendChild(progressScript);
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(error => console.warn("Offline mode could not start.", error)));
 }
