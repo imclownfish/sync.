@@ -1,5 +1,5 @@
-const CACHE = "sync-shell-v4";
-const SHELL = ["./", "./index.html", "./list.html", "./styles.css", "./enhancements.css", "./auth.css", "./favicon.svg", "./manifest.webmanifest", "./app.js?v=9", "./firebase.js?v=4", "./interactions.js?v=1", "./list.js?v=2", "./progress.js?v=3", "./pwa.js?v=4"];
+const CACHE = "sync-shell-v5";
+const SHELL = ["./", "./index.html", "./list.html", "./styles.css", "./enhancements.css", "./auth.css", "./favicon.svg", "./manifest.webmanifest", "./app.js?v=9", "./firebase.js?v=5", "./interactions.js?v=2", "./list.js?v=3", "./progress.js?v=4", "./pwa.js?v=5"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));

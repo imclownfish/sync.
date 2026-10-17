@@ -1,8 +1,16 @@
 let deferredInstall = null;
 
 const progressScript = document.createElement("script");
-progressScript.src = "progress.js?v=3";
+progressScript.src = "progress.js?v=4";
 document.head.appendChild(progressScript);
+
+const animeId = new URLSearchParams(location.search).get("anime");
+if (animeId && typeof openDetails === "function") {
+  window.addEventListener("load", () => setTimeout(() => {
+    openDetails(animeId);
+    history.replaceState({}, "", location.pathname);
+  }, 80), { once:true });
+}
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(error => console.warn("Offline mode could not start.", error)));
